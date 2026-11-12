@@ -1,0 +1,275 @@
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+local SCRIPT_URL = "https://raw.githubusercontent.com/bobloscript/robscript/refs/heads/main/Caser"
+
+-- Удаляем старую заставку
+local oldGui = PlayerGui:FindFirstChild("CaserLoading")
+if oldGui then
+    oldGui:Destroy()
+end
+
+-- Основной интерфейс
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "CaserLoading"
+ScreenGui.IgnoreGuiInset = true
+ScreenGui.ResetOnSpawn = false
+ScreenGui.DisplayOrder = 999999
+ScreenGui.Parent = PlayerGui
+
+local Background = Instance.new("Frame")
+Background.Size = UDim2.fromScale(1, 1)
+Background.BackgroundColor3 = Color3.fromRGB(8, 8, 22)
+Background.BorderSizePixel = 0
+Background.Parent = ScreenGui
+
+local BackgroundGradient = Instance.new("UIGradient")
+BackgroundGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(8, 8, 25)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(24, 10, 48)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(5, 15, 35))
+})
+BackgroundGradient.Rotation = 35
+BackgroundGradient.Parent = Background
+
+TweenService:Create(
+    BackgroundGradient,
+    TweenInfo.new(7, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+    {Offset = Vector2.new(0.7, 0)}
+):Play()
+
+-- Свечение
+local function createGlow(color, position, size)
+    local glow = Instance.new("Frame")
+    glow.AnchorPoint = Vector2.new(0.5, 0.5)
+    glow.Position = position
+    glow.Size = size
+    glow.BackgroundColor3 = color
+    glow.BackgroundTransparency = 0.45
+    glow.BorderSizePixel = 0
+    glow.Parent = Background
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = glow
+
+    local gradient = Instance.new("UIGradient")
+    gradient.Transparency = NumberSequence.new({
+        NumberSequenceKeypoint.new(0, 0.2),
+        NumberSequenceKeypoint.new(1, 1)
+    })
+    gradient.Parent = glow
+
+    TweenService:Create(
+        glow,
+        TweenInfo.new(4, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+        {
+            Size = size + UDim2.fromOffset(100, 100),
+            Position = position + UDim2.fromOffset(40, -25)
+        }
+    ):Play()
+end
+
+createGlow(Color3.fromRGB(70, 30, 180), UDim2.fromScale(0.18, 0.3), UDim2.fromOffset(240, 240))
+createGlow(Color3.fromRGB(20, 100, 220), UDim2.fromScale(0.82, 0.72), UDim2.fromOffset(280, 280))
+createGlow(Color3.fromRGB(150, 35, 200), UDim2.fromScale(0.5, 0.15), UDim2.fromOffset(180, 180))
+
+-- Плавающие частицы
+for i = 1, 22 do
+    local particle = Instance.new("Frame")
+    local size = math.random(2, 4)
+
+    particle.Size = UDim2.fromOffset(size, size)
+    particle.Position = UDim2.fromScale(math.random(), math.random())
+    particle.BackgroundColor3 = Color3.fromRGB(150, 180, 255)
+    particle.BackgroundTransparency = math.random(25, 60) / 100
+    particle.BorderSizePixel = 0
+    particle.Parent = Background
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = particle
+
+    task.spawn(function()
+        while particle.Parent do
+            local tween = TweenService:Create(
+                particle,
+                TweenInfo.new(math.random(3, 6), Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
+                {
+                    Position = UDim2.fromScale(math.random(), math.random()),
+                    BackgroundTransparency = math.random(20, 80) / 100
+                }
+            )
+            tween:Play()
+            tween.Completed:Wait()
+        end
+    end)
+end
+
+-- Светящиеся кольца
+local function createRing(size, transparency)
+    local ring = Instance.new("Frame")
+    ring.AnchorPoint = Vector2.new(0.5, 0.5)
+    ring.Position = UDim2.fromScale(0.5, 0.5)
+    ring.Size = UDim2.fromOffset(size, size)
+    ring.BackgroundTransparency = 1
+    ring.Parent = Background
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = ring
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Thickness = 1.5
+    stroke.Transparency = transparency
+    stroke.Color = Color3.fromRGB(100, 100, 255)
+    stroke.Parent = ring
+
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 180, 255)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(170, 50, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 180, 255))
+    })
+    gradient.Parent = stroke
+
+    TweenService:Create(
+        gradient,
+        TweenInfo.new(5, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1),
+        {Rotation = 360}
+    ):Play()
+
+    TweenService:Create(
+        ring,
+        TweenInfo.new(3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+        {Size = UDim2.fromOffset(size + 25, size + 25)}
+    ):Play()
+end
+
+createRing(280, 0.35)
+createRing(320, 0.65)
+
+-- Главный текст
+local Title = Instance.new("TextLabel")
+Title.AnchorPoint = Vector2.new(0.5, 0.5)
+Title.Position = UDim2.fromScale(0.5, 0.47)
+Title.Size = UDim2.new(0.9, 0, 0, 55)
+Title.BackgroundTransparency = 1
+Title.Text = "СПАСИБО ЗА ПОКУПКУ ❤️"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextTransparency = 1
+Title.TextScaled = true
+Title.Font = Enum.Font.GothamBold
+Title.Parent = Background
+
+local titleConstraint = Instance.new("UITextSizeConstraint")
+titleConstraint.MaxTextSize = 29
+titleConstraint.MinTextSize = 17
+titleConstraint.Parent = Title
+
+local titleGradient = Instance.new("UIGradient")
+titleGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(70, 190, 255)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(180, 100, 255)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 100, 200))
+})
+titleGradient.Parent = Title
+
+TweenService:Create(
+    titleGradient,
+    TweenInfo.new(4, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+    {Offset = Vector2.new(1, 0)}
+):Play()
+
+TweenService:Create(
+    Title,
+    TweenInfo.new(1.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+    {TextTransparency = 0}
+):Play()
+
+-- Напоминание об отзыве
+local Review = Instance.new("TextLabel")
+Review.AnchorPoint = Vector2.new(0.5, 0.5)
+Review.Position = UDim2.fromScale(0.5, 0.54)
+Review.Size = UDim2.new(0.9, 0, 0, 38)
+Review.BackgroundTransparency = 1
+Review.Text = "НЕ ЗАБУДЬ ОСТАВИТЬ ОТЗЫВ!"
+Review.TextColor3 = Color3.fromRGB(190, 180, 255)
+Review.TextTransparency = 1
+Review.TextScaled = true
+Review.Font = Enum.Font.GothamMedium
+Review.Parent = Background
+
+local reviewConstraint = Instance.new("UITextSizeConstraint")
+reviewConstraint.MaxTextSize = 19
+reviewConstraint.MinTextSize = 12
+reviewConstraint.Parent = Review
+
+TweenService:Create(
+    Review,
+    TweenInfo.new(1.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+    {TextTransparency = 0}
+):Play()
+
+-- Запуск CASER
+local startTime = os.clock()
+local finished = false
+local loadError = nil
+
+task.spawn(function()
+    local success, err = pcall(function()
+        local source = game:HttpGet(SCRIPT_URL)
+        assert(type(source) == "string" and #source > 0, "Не удалось загрузить скрипт")
+
+        local compiled, compileError = loadstring(source)
+        assert(type(compiled) == "function", compileError or "Ошибка компиляции")
+
+        compiled()
+    end)
+
+    if not success then
+        loadError = err
+        warn("[Caser Loading] " .. tostring(err))
+    end
+
+    finished = true
+end)
+
+-- Не убираем заставку раньше 3.8 секунды
+while os.clock() - startTime < 3.8 do
+    task.wait(0.1)
+end
+
+-- Ждём завершения запуска, но не бесконечно
+local waitStart = os.clock()
+while not finished and os.clock() - waitStart < 25 do
+    task.wait(0.1)
+end
+
+-- Плавное исчезновение
+for _, obj in ipairs(Background:GetDescendants()) do
+    if obj:IsA("TextLabel") then
+        TweenService:Create(obj, TweenInfo.new(1.2), {
+            TextTransparency = 1
+        }):Play()
+    elseif obj:IsA("Frame") then
+        TweenService:Create(obj, TweenInfo.new(1.2), {
+            BackgroundTransparency = 1
+        }):Play()
+    elseif obj:IsA("UIStroke") then
+        TweenService:Create(obj, TweenInfo.new(1.2), {
+            Transparency = 1
+        }):Play()
+    end
+end
+
+TweenService:Create(Background, TweenInfo.new(1.2), {
+    BackgroundTransparency = 1
+}):Play()
+
+task.wait(1.4)
+ScreenGui:Destroy()
